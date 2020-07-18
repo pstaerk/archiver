@@ -8,5 +8,7 @@ def filter_urls(books, known):
 
     """
     # For know simply filter the new urls
-    books = {name:url for name, url in books.items() if not url in known.values()}
+    # because known are stored in the form (url, path_to_archive), look at [0]
+    books = {name:url for name, url in books.items()
+            if not url in [v[0] for v in known.values()]}
     return books
