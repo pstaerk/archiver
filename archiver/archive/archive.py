@@ -9,7 +9,7 @@ def get_archived_urls(config):
 
     :returns: dictionary of already archived urls, of the form name:url
     """
-    list_dir = config('archive_folder')+'/url_list.json'
+    list_dir = config('archive_folder')+'url_list.json'
 
     # If list is not yet initialized, create it
     if not os.path.exists(list_dir):
@@ -24,20 +24,24 @@ def save_content(name, url, config):
     """Method saving the content under url, giving it the name of
     name.
 
+    This method changes the working directory to the archive!
+
     :name: name of the resource
     :url: url of the resource
     :returns: archive folder that resource can be found under
 
     """
-    logging.error(f'Attempting to save: {url} for {name}')
+    logging.info(f'Attempting to save: {url} for {name}')
     save_name = name.replace(' ', '')
     save_path = os.path.join(f"{config('archive_folder')}", f"{save_name}")
     if not os.path.exists(save_path):
         os.mkdir(save_path)
 
+    os.chdir(save_path)
+
+    logging.info(f'The savepath is {save_path}/{save_name}.html')
     # Perform the actual download
-    os.system(f"""wget --unlink --continue --page-requisites --timestamping {url}""" +
-            """-O {save_path}/{save_path}.html""")
+    os.system(f"""wget  --unlink --continue --page-requisites --timestamping {url}""")
     return save_path
 
 def archive_urls(books, config):
@@ -49,7 +53,12 @@ def archive_urls(books, config):
     :returns: dict of successfully archived files, with added path
     """
     saved = {}
+
+    # Remember the working directory to jump back to it, every time a
+    # download is done.
+    wdir = os.getcwd()
     for name, url in books.items():
         save_path = save_content(name, url, config)
         saved[name] = (url, save_path)
+        os.chdir(wdir) # change working directory back.
     return saved
